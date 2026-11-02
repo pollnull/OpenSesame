@@ -1,0 +1,32 @@
+# Copyright 2026 PollNull
+
+# Dependencias y salidas de compilación
+node_modules/
+dist/
+build/*
+!build/icon.png
+android/.gradle/
+android/**/build/
+android/local.properties
+*.apk
+*.aab
+
+# Claves de firma y secretos: nunca al repositorio
+android/signing/
+*.jks
+*.keystore
+*.p12
+*.pem
+*.key
+keystore.properties
+signing.properties
+.env*
+!.env.example
+
+# Herramientas y sistema
+.claude/
+.freebuff/
+.idea/
+graphify-out/
+.DS_Store
+Thumbs.db

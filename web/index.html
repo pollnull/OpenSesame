@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="es" data-platform="desktop">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'">
+<title>OpenSesame</title>
+<style>
+  /* IBM Plex, bundled for offline use (SIL OFL 1.1, see fonts/OFL.txt). */
+  @font-face { font-family: "IBM Plex Sans"; font-weight: 400; font-display: swap; src: url(fonts/ibm-plex-sans-latin-400-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  @font-face { font-family: "IBM Plex Sans"; font-weight: 400; font-display: swap; src: url(fonts/ibm-plex-sans-latin-ext-400-normal.woff2) format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+20A0-20AB, U+20AD-20C0, U+2C60-2C7F, U+A720-A7FF; }
+  @font-face { font-family: "IBM Plex Sans"; font-weight: 500; font-display: swap; src: url(fonts/ibm-plex-sans-latin-500-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  @font-face { font-family: "IBM Plex Sans"; font-weight: 500; font-display: swap; src: url(fonts/ibm-plex-sans-latin-ext-500-normal.woff2) format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+20A0-20AB, U+20AD-20C0, U+2C60-2C7F, U+A720-A7FF; }
+  @font-face { font-family: "IBM Plex Sans"; font-weight: 600; font-display: swap; src: url(fonts/ibm-plex-sans-latin-600-normal.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  @font-face { font-family: "IBM Plex Sans"; font-weight: 600; font-display: swap; src: url(fonts/ibm-plex-sans-latin-ext-600-normal.woff2) format("woff2"); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+20A0-20AB, U+20AD-20C0, U+2C60-2C7F, U+A720-A7FF; }
+  @font-face { font-family: "IBM Plex Mono"; font-weight: 500; font-display: swap; src: url(fonts/ibm-plex-mono-latin-500-normal.woff2) format("woff2"); unicode-range: U+0000-00FF; }
+  @font-face { font-family: "IBM Plex Mono"; font-weight: 500; font-display: swap; src: url(fonts/ibm-plex-mono-latin-ext-500-normal.woff2) format("woff2"); unicode-range: U+0100-02FF; }
+
+  :root {
+    color-scheme: dark;
+    --bg: #0e0f12;
+    --surface: #17191e;
+    --surface-2: #20232a;
+    --divider: rgba(255, 255, 255, .07);
+    --text: #ecebe8;
+    --text-2: #a3a5ad;
+    --text-3: #8a8d96;
+    --accent: #e2b04a;
+    --on-accent: #1a1306;
+    --danger: #ef6b5e;
+    --ease-out: cubic-bezier(.2, .8, .2, 1);
+    --ease-in: cubic-bezier(.4, 0, 1, 1);
+    /* Press bounce: pressed scale, overshoot, undershoot, duration. Windows secondary controls by default. */
+    --p: .98; --o: 1.012; --u: 1; --dur: 220ms;
+    /* System bar sizes; the Android app sets these because the page draws edge to edge. */
+    --inset-top: 0px; --inset-right: 0px; --inset-bottom: 0px; --inset-left: 0px;
+  }
+  [data-platform="android"] { --p: .96; --o: 1.02; --u: .996; --dur: 260ms; }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/22px "IBM Plex Sans", system-ui, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+  }
+  [data-platform="android"] body { font-size: 16px; line-height: 23px; padding: var(--inset-top) var(--inset-right) 0 var(--inset-left); }
+  [data-platform="android"] .only-desktop, [data-platform="desktop"] .only-android { display: none !important; }
+  [hidden] { display: none !important; }
+  svg { display: block; flex: none; }
+
+  button, select { font: inherit; color: inherit; }
+  button { background: none; border: 0; padding: 0; cursor: pointer; transition: scale .14s ease-out; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button:disabled { cursor: default; opacity: .5; }
+  button.pressed { scale: var(--p); transition: scale 80ms ease-out; }
+  button.spring { animation: spring var(--dur) var(--ease-out); }
+  @keyframes spring {
+    0% { scale: var(--p); }
+    45% { scale: var(--o); }
+    75% { scale: var(--u); }
+    100% { scale: 1; }
+  }
+
+  .btn { height: 40px; padding: 0 16px; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+  [data-platform="android"] .btn { height: 48px; padding: 0 20px; }
+  .btn:hover:not(:disabled) { background: var(--surface-2); }
+  .btn.primary { background: var(--accent); color: var(--on-accent); }
+  .btn.primary:hover:not(:disabled) { background: #ecbd5b; }
+  .btn.danger { background: var(--danger); color: #1c0806; }
+  .btn svg { width: 20px; height: 20px; }
+  /* Small utility buttons (help, show password) sink and return without overshoot. */
+  .icon-btn { --p: .97; --o: 1; --u: 1; --dur: 120ms; width: 40px; height: 40px; border-radius: 8px; display: grid; place-items: center; color: var(--text-2); }
+  [data-platform="android"] .icon-btn { width: 48px; height: 48px; }
+  .icon-btn:hover { background: var(--surface-2); color: var(--text); }
+  .icon-btn svg { width: 20px; height: 20px; }
+
+  /* Layout */
+  .page { max-width: 880px; margin: 0 auto; padding: 0 24px 48px; }
+  [data-platform="android"] .page { padding: 0 16px calc(112px + var(--inset-bottom)); }
+  .top { display: flex; align-items: center; gap: 10px; padding: 20px 0 20px; }
+  .top .mark { width: 24px; height: 24px; color: var(--accent); }
+  .top .mark svg { width: 100%; height: 100%; }
+  h1 { margin: 0; font-size: 20px; font-weight: 600; flex: 1; }
+  /* Android: centered brand, large mark above a smaller name. */
+  [data-platform="android"] .top { position: relative; flex-direction: column; gap: 8px; padding: 20px 0; }
+  [data-platform="android"] .top .mark { width: 40px; height: 40px; }
+  [data-platform="android"] h1 { flex: none; font-size: 16px; font-weight: 600; }
+  [data-platform="android"] #help { position: absolute; top: 8px; right: -8px; }
+  .add-top { --p: .96; --o: 1.02; --u: 1; --dur: 260ms; }
+
+  .tools { display: flex; gap: 8px; margin-bottom: 20px; }
+  .search { flex: 1; position: relative; display: block; margin: 0; font-size: inherit; }
+  .search svg { position: absolute; left: 12px; top: 50%; translate: 0 -50%; width: 18px; height: 18px; color: var(--text-3); pointer-events: none; }
+  input, select {
+    font: inherit; color: var(--text); background: var(--surface);
+    border: 1px solid var(--divider); border-radius: 8px; height: 40px; padding: 0 12px;
+    transition: border-color .15s;
+  }
+  [data-platform="android"] input, [data-platform="android"] select { height: 48px; font-size: 16px; }
+  input:focus, select:focus { outline: none; border-color: var(--accent); }
+  .search input { width: 100%; padding-left: 38px; }
+  .search input::-webkit-search-cancel-button { filter: grayscale(1) brightness(1.4); }
+  select {
+    appearance: none; padding-right: 34px; cursor: pointer;
+    background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23a3a5ad' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E") no-repeat right 12px center;
+  }
+  @media (max-width: 359px) {
+    .tools { flex-direction: column; }
+    select { align-self: flex-start; }
+  }
+
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 0 2px 8px; }
+  h2 { margin: 0; font-size: 15px; font-weight: 600; color: var(--text-2); }
+  #summary { font-size: 13px; line-height: 18px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+
+  /* File list */
+  #list { list-style: none; margin: 0; padding: 0; background: var(--surface); border-radius: 12px; overflow: hidden; }
+  #list:empty { display: none; }
+  #list li { display: flex; align-items: center; position: relative; overflow: hidden; }
+  #list li + li::before { content: ""; position: absolute; top: 0; left: 56px; right: 0; height: 1px; background: var(--divider); }
+  [data-platform="android"] #list li + li::before { left: 68px; }
+  #list li.added { animation: row-in 260ms var(--ease-out), glow 600ms ease-out; }
+  @keyframes row-in { 0% { translate: 0 -8px; } 60% { translate: 0 2px; } 100% { translate: 0 0; } }
+  @keyframes glow { from { background: rgba(226, 176, 74, .08); } }
+  .item {
+    --p: .99; --o: 1.005; --u: 1; --dur: 200ms;
+    flex: 1; min-width: 0; min-height: 50px; display: flex; align-items: center; gap: 12px; padding: 8px 4px 8px 12px;
+    text-align: left; border-radius: 8px;
+    user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  }
+  [data-platform="android"] .item { --p: .985; --o: 1.006; --u: 1; --dur: 220ms; min-height: 64px; gap: 14px; padding: 12px 4px 12px 14px; }
+  .item:hover { background: var(--surface-2); }
+  .item:focus-visible, .more:focus-visible { outline-offset: -2px; }
+  .type {
+    width: 32px; height: 32px; border-radius: 4px; flex: none; display: grid; place-items: center;
+    background: var(--surface-2); color: var(--text-2);
+    font: 500 9.5px/1 "IBM Plex Mono", ui-monospace, monospace;
+  }
+  [data-platform="android"] .type { width: 40px; height: 40px; font-size: 10.5px; }
+  .info { min-width: 0; display: grid; }
+  .name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .meta { color: var(--text-3); font-size: 13px; line-height: 18px; font-variant-numeric: tabular-nums; }
+  .more { width: 40px; height: 40px; margin-right: 6px; border-radius: 8px; display: grid; place-items: center; color: var(--text-3); }
+  [data-platform="android"] .more { width: 48px; height: 48px; }
+  .more:hover { background: var(--surface-2); color: var(--text); }
+
+  .empty { padding: 40px 24px; text-align: center; }
+  .empty h3 { margin: 0 0 6px; font-size: 17px; font-weight: 600; }
+  .empty p { margin: 0 auto; max-width: 320px; color: var(--text-2); }
+  #noMatch { padding: 32px 16px; text-align: center; color: var(--text-2); margin: 0; }
+
+  .fab {
+    --p: .94; --o: 1.035; --u: .992; --dur: 320ms;
+    position: fixed; right: calc(20px + var(--inset-right)); bottom: calc(24px + var(--inset-bottom));
+    width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center;
+    background: var(--accent); color: var(--on-accent);
+    box-shadow: 0 3px 8px #00000040;
+  }
+  .fab svg { width: 26px; height: 26px; }
+
+  /* Dialogs: the panel animates; the dialog element is only the layer. */
+  dialog { padding: 0; border: 0; background: none; color: var(--text); max-width: 100vw; max-height: 100vh; overflow: visible; }
+  dialog::backdrop { background: rgba(0, 0, 0, .55); }
+  dialog[open]::backdrop { animation: fade-in 160ms ease-out; }
+  dialog.closing::backdrop { animation: fade-out 140ms var(--ease-in) forwards; }
+  @keyframes fade-in { from { opacity: 0; } }
+  @keyframes fade-out { to { opacity: 0; } }
+  .panel { background: var(--surface); border-radius: 16px; padding: 24px; width: min(400px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto; }
+  dialog[open] .panel { animation: dialog-in 220ms var(--ease-out); }
+  dialog.closing .panel { animation: dialog-out 140ms var(--ease-in) forwards; }
+  @keyframes dialog-in {
+    0% { opacity: 0; transform: translateY(6px) scale(.97); }
+    60% { opacity: 1; transform: translateY(0) scale(1.008); }
+    100% { transform: none; }
+  }
+  @keyframes dialog-out { to { opacity: 0; transform: scale(.98); } }
+  /* Help stays a centered card; prompts and actions become bottom sheets on phones. */
+  @media (max-width: 599px) {
+    [data-platform="android"] dialog.sheetable { margin: auto 0 0; width: 100%; }
+    [data-platform="android"] dialog.sheetable .panel {
+      width: 100%; max-height: 85vh; border-radius: 16px 16px 0 0;
+      padding-bottom: calc(24px + var(--inset-bottom));
+      box-shadow: 0 24px 0 var(--surface); /* fills the gap while the sheet overshoots */
+    }
+    [data-platform="android"] #sheet .panel { padding-bottom: calc(12px + var(--inset-bottom)); }
+    [data-platform="android"] dialog.sheetable[open] .panel { animation: sheet-in 340ms var(--ease-out); }
+    [data-platform="android"] dialog.sheetable.closing .panel { animation: sheet-out 140ms var(--ease-in) forwards; }
+  }
+  @keyframes sheet-in {
+    0% { opacity: 0; transform: translateY(32px); }
+    30% { opacity: 1; }
+    70% { transform: translateY(-3px); }
+    100% { transform: none; }
+  }
+  @keyframes sheet-out { to { opacity: 0; transform: translateY(24px); } }
+  dialog h2 { margin: 0 0 4px; font-size: 18px; font-weight: 600; color: var(--text); text-transform: none; overflow-wrap: anywhere; }
+  dialog p { margin: 0 0 20px; color: var(--text-2); }
+
+  /* Password / text prompt */
+  .lockmark { width: 36px; height: 36px; margin-bottom: 14px; color: var(--accent); }
+  .lockmark .shackle { transform-box: view-box; transform-origin: 15.5px 10.5px; }
+  .lockmark.open .shackle { animation: shackle-open 280ms var(--ease-out) forwards; }
+  @keyframes shackle-open { 0% { rotate: 0deg; } 65% { rotate: -28deg; } 100% { rotate: -22deg; } }
+  .shake { animation: shake 220ms ease-out; }
+  @keyframes shake { 25% { translate: -4px 0; } 50% { translate: 4px 0; } 75% { translate: -2px 0; } }
+  label { display: grid; gap: 6px; margin-bottom: 16px; font-size: 13px; font-weight: 500; color: var(--text-2); }
+  .field { position: relative; display: block; }
+  .field input { width: 100%; background: var(--bg); }
+  .field input[type="password"], .field input.secret { padding-right: 48px; }
+  label.check { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; font-size: 14px; font-weight: 400; color: var(--text-2); cursor: pointer; }
+  label.check input { width: 20px; height: 20px; margin: 0; flex: none; accent-color: var(--accent); }
+  .reveal { position: absolute; right: 4px; top: 50%; translate: 0 -50%; }
+  #askError { color: var(--danger); margin: -6px 0 16px; font-size: 14px; }
+  .progress { height: 2px; margin: -6px 0 16px; border-radius: 1px; background: var(--surface-2); overflow: hidden; }
+  .progress span { display: block; width: 35%; height: 100%; background: var(--accent); animation: indeterminate 1.1s ease-in-out infinite; }
+  @keyframes indeterminate { from { translate: -100% 0; } to { translate: 290% 0; } }
+  .row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+  /* Actions: bottom sheet on phones, context menu at the pointer on Windows */
+  #sheet .panel { padding: 8px 8px 12px; }
+  #sheet h2 { padding: 14px 14px 10px; margin: 0; font-size: 14px; color: var(--text-2); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .actions { display: grid; }
+  .actions button {
+    --p: .985; --o: 1.006; --u: 1; --dur: 220ms;
+    display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 8px; text-align: left;
+  }
+  [data-platform="android"] .actions button { padding: 14px 16px; gap: 16px; }
+  .actions button:hover { background: var(--surface-2); }
+  .actions svg { width: 20px; height: 20px; color: var(--text-2); }
+  .actions .warn, .actions .warn svg { color: var(--danger); }
+  .actions kbd { margin-left: auto; font: 12px/1 inherit; color: var(--text-3); }
+  dialog.at-point { margin: 0; inset: auto; position: fixed; }
+  dialog.at-point::backdrop { background: transparent; }
+  dialog.at-point .panel { width: 232px; padding: 4px; border-radius: 8px; border: 1px solid var(--divider); box-shadow: 0 8px 24px rgba(0, 0, 0, .45); }
+  dialog.at-point[open] .panel { animation: menu-in 160ms var(--ease-out); transform-origin: top left; }
+  @keyframes menu-in { from { opacity: 0; transform: scale(.97); } }
+  dialog.at-point h2 { display: none; }
+  dialog.at-point .actions button { padding: 8px 10px; gap: 10px; font-size: 14px; border-radius: 6px; }
+  dialog.at-point .actions svg { width: 18px; height: 18px; }
+
+  /* Help */
+  #helpDialog .panel { width: min(460px, calc(100vw - 32px)); }
+  #helpDialog ul { margin: 0 0 20px; padding: 0; list-style: none; display: grid; gap: 12px; color: var(--text-2); }
+  #helpDialog strong { color: var(--text); font-weight: 600; }
+  .version { color: var(--text-3); font-size: 13px; margin: 0 !important; align-self: center; flex: 1; }
+
+  #toast {
+    position: fixed; left: 50%; bottom: 24px; translate: -50% 6px; max-width: calc(100vw - 32px);
+    padding: 10px 16px; border-radius: 8px; background: var(--surface-2); text-align: center;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .3);
+    opacity: 0; pointer-events: none; transition: opacity 140ms var(--ease-in), translate 140ms var(--ease-in);
+  }
+  [data-platform="android"] #toast { bottom: calc(96px + var(--inset-bottom)); }
+  #toast.show { opacity: 1; translate: -50% 0; transition: opacity 160ms var(--ease-out), translate 160ms var(--ease-out); }
+
+  body.dragging::after {
+    content: attr(data-drop); position: fixed; inset: 12px; z-index: 10;
+    display: grid; place-items: center; border: 2px dashed var(--accent); border-radius: 16px;
+    background: rgba(14, 15, 18, .88); color: var(--text); font-weight: 600; pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after, dialog::backdrop { animation: none !important; transition: none !important; }
+    button.pressed { scale: 1; }
+  }
+</style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-keyhole" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.5a5 5 0 0 0-2.4 9.4L8.2 20a1 1 0 0 0 1 1.2h5.6a1 1 0 0 0 1-1.2l-1.4-8.1A5 5 0 0 0 12 2.5z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"/></symbol>
+    <symbol id="i-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 6.8-1.2"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3.5M7.5 8 12 3.5 16.5 8"/><path d="M5 12.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6.5"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16M9.5 6.5V4.5h5v2M6.5 6.5l.8 13a1.5 1.5 0 0 0 1.5 1.5h6.4a1.5 1.5 0 0 0 1.5-1.5l.8-13"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5.5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="18.5" r="1.7"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.1-2.4 3.6"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10 5.7A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-2.6 3.4M6.4 7.2A16 16 0 0 0 2.5 12S6 18.5 12 18.5a9 9 0 0 0 4.4-1.1"/><path d="M4 4l16 16"/></symbol>
+  </svg>
+
+  <main class="page">
+    <header class="top">
+      <span class="mark" aria-hidden="true"><svg><use href="#i-keyhole"/></svg></span>
+      <h1>OpenSesame</h1>
+      <button id="help" class="icon-btn" aria-label="Cómo funciona" title="Cómo funciona" data-i18n-aria="help" data-i18n-title="help"><svg aria-hidden="true"><use href="#i-help"/></svg></button>
+      <button id="addTop" class="btn primary add-top only-desktop" title="Agregar (Ctrl+O)" data-i18n-title="addShortcut"><svg aria-hidden="true"><use href="#i-plus"/></svg><span data-i18n="add">Agregar</span></button>
+    </header>
+
+    <div id="tools" class="tools" hidden>
+      <label class="search">
+        <svg aria-hidden="true"><use href="#i-search"/></svg>
+        <input id="search" type="search" placeholder="Buscar" aria-label="Buscar archivos" data-i18n-placeholder="search" data-i18n-aria="searchLabel" autocomplete="off" spellcheck="false">
+      </label>
+      <select id="sort" aria-label="Ordenar" data-i18n-aria="sortLabel">
+        <option value="recent" data-i18n="sortRecent">Recientes</option>
+        <option value="name" data-i18n="sortName">Nombre</option>
+        <option value="size" data-i18n="sortSize">Tamaño</option>
+      </select>
+    </div>
+
+    <div class="section-head">
+      <h2 data-i18n="vault">Bóveda</h2>
+      <span id="summary"></span>
+    </div>
+    <ul id="list" aria-label="Archivos cifrados" data-i18n-aria="listLabel"></ul>
+    <p id="noMatch" hidden></p>
+    <div id="empty" class="empty" hidden>
+      <h3 data-i18n="emptyTitle">No hay archivos todavía</h3>
+      <p>
+        <span data-i18n="emptyText">Agrega un archivo para cifrarlo con contraseña, o importa un .sesame.</span>
+        <span class="only-desktop" data-i18n="emptyDrop">También puedes arrastrarlos a esta ventana.</span>
+      </p>
+    </div>
+  </main>
+
+  <button id="add" class="fab only-android" aria-label="Agregar" data-i18n-aria="add"><svg aria-hidden="true"><use href="#i-plus"/></svg></button>
+  <input id="picker" type="file" multiple hidden>
+
+  <template id="rowTemplate">
+    <li>
+      <button class="item">
+        <span class="type" aria-hidden="true"></span>
+        <span class="info"><span class="name"></span><span class="meta"></span></span>
+      </button>
+      <button class="more"><svg width="20" height="20" aria-hidden="true"><use href="#i-more"/></svg></button>
+    </li>
+  </template>
+
+  <dialog id="ask" class="sheetable">
+    <form id="askForm" class="panel">
+      <svg id="askIcon" class="lockmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <rect x="5" y="10.5" width="14" height="10" rx="2"/>
+        <path class="shackle" d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3"/>
+      </svg>
+      <h2 id="askTitle"></h2>
+      <p id="askText"></p>
+      <div id="askFields"></div>
+      <p id="askError" role="alert" hidden></p>
+      <div id="askProgress" class="progress" role="progressbar" aria-label="Trabajando" data-i18n-aria="working" hidden><span></span></div>
+      <div class="row">
+        <button type="button" class="btn" id="askCancel" data-i18n="cancel">Cancelar</button>
+        <button type="submit" class="btn primary" id="askOk"></button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="sheet" class="sheetable">
+    <div class="panel">
+      <h2 id="sheetTitle"></h2>
+      <div class="actions">
+        <button data-act="decrypt"><svg aria-hidden="true"><use href="#i-unlock"/></svg><span data-i18n="actDecrypt">Descifrar y guardar copia</span></button>
+        <button data-act="rename"><svg aria-hidden="true"><use href="#i-edit"/></svg><span data-i18n="actRename">Cambiar nombre</span><kbd class="only-desktop">F2</kbd></button>
+        <button data-act="export"><svg aria-hidden="true"><use href="#i-share"/></svg><span data-i18n="actExport">Exportar como .sesame</span></button>
+        <button data-act="delete" class="warn"><svg aria-hidden="true"><use href="#i-trash"/></svg><span data-i18n="actDelete">Eliminar</span><kbd class="only-desktop" data-i18n="keyDelete">Supr</kbd></button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="helpDialog">
+    <div class="panel">
+      <h2 data-i18n="help">Cómo funciona</h2>
+      <p data-i18n="helpIntro">OpenSesame cifra cada archivo con su propia contraseña, dentro de este dispositivo.</p>
+      <ul>
+        <li><span data-i18n-html="helpPassword"><strong>No hay forma de recuperar una contraseña olvidada.</strong> Usa una frase de 4 o más palabras elegidas al azar, no una cita conocida.</span></li>
+        <li><span data-i18n="helpNames">Los nombres de la lista se ven sin contraseña. El nombre original va cifrado dentro del archivo y se recupera al descifrarlo.</span></li>
+        <li><span data-i18n="helpExport">Exportar crea un archivo .sesame que puedes abrir con OpenSesame en otro dispositivo.</span></li>
+        <li><span data-i18n-html="helpOriginals"></span></li>
+        <li class="only-desktop"><span data-i18n-html="helpDesktop">La bóveda se guarda en la carpeta <strong>OpenSesame-datos</strong>, junto al programa. Muévelos juntos.</span></li>
+        <li class="only-android"><span data-i18n-html="helpAndroid">La bóveda vive dentro de la app. <strong>Desinstalarla la borra:</strong> exporta antes lo que quieras conservar.</span></li>
+      </ul>
+      <div class="row">
+        <span class="version" data-i18n="version">Versión 1.3 · AES-256-GCM</span>
+        <button type="button" class="btn" id="helpClose" data-i18n="gotIt">Entendido</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script src="sesame.js"></script>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
