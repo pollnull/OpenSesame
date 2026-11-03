@@ -93,6 +93,7 @@ public class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 applyInsets();
+                applyDynamicColors();
             }
         });
         // Edge to edge: the page paints behind transparent system bars and pads itself with --inset-* values.
@@ -145,7 +146,20 @@ public class MainActivity extends Activity {
 
     private void applyInsets() {
         if (insetsScript != null) webView.evaluateJavascript(insetsScript, null);
-    }
+    } 
+    
+    private void applyDynamicColors() {
+        if (Build.VERSION.SDK_INT < 31) return;
+        String accent = String.format("#%06x",
+            getColor(android.R.color.system_accent1_200) & 0xFFFFFF);
+            String onAccent = String.format("#%06x",
+            getColor(android.R.color.system_accent1_800) & 0xFFFFFF);
+            String script =
+                "document.documentElement.style.setProperty('--accent','" + accent + "');"
+                + "document.documentElement.style.setProperty('--on-accent','" + onAccent + "');";
+        webView.evaluateJavascript(script, null);
+    }     
+    
 
     // The page words the result in the phone's language.
     private void notifySave(String state) {
