@@ -23,7 +23,7 @@ OpenSesame is a free and open-source app that works like a secure folder for any
 > [!NOTE]
 > OpenSesame is a free, open-source learning project, built with the help of AI (Claude Code, with OpenAI Codex as a reviewer). **Its encryption has not been independently audited**, so please don't make it the only protection for important data.
 
-> **Status:** learning project · built with AI assistance · not independently audited · v1.4.0 available.
+> **Status:** learning project · not independently audited · v1.4.0 available.
 
 ## Download
 
@@ -114,8 +114,9 @@ The app works offline and sends nothing anywhere. These are its limits:
 
 OpenSesame is built with AI assistance, split in two:
 
-- **Big changes are made with AI.** The encryption, the architecture, new platforms, and bug fixes are written by **Anthropic Claude (Claude Code)**, which also builds the apps and tests them in a browser, an emulator, and a real phone. **OpenAI Codex** acts as a second opinion on the interface design and the encryption and security changes. Their discussions are recorded in [`docs/ui-debate.md`](docs/ui-debate.md) and [`docs/flujo-de-trabajo.md`](docs/flujo-de-trabajo.md), in Spanish.
 - **Smaller changes are made by me, as I learn to code.** I write them myself, and the AI only supervises: it explains, guides, and reviews what I wrote. The Material You colors in 1.4 were made this way.
+
+- **Big changes are made with AI.** The encryption, the architecture, new platforms, and bug fixes are written by **Anthropic Claude (Claude Code)**, which also builds the apps and tests them in a browser, an emulator, and a real phone. **OpenAI Codex** acts as a second opinion on the interface design and the encryption and security changes. Their discussions are recorded in [`docs/ui-debate.md`](docs/ui-debate.md) and [`docs/flujo-de-trabajo.md`](docs/flujo-de-trabajo.md), in Spanish.
 
 I also decide what to build and test every version on my own devices. Third-party files keep their own authors: the Gradle Wrapper (`android/gradlew*`, `android/gradle/`), the IBM Plex fonts, and the Apache License text.
 
