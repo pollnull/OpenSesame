@@ -45,9 +45,13 @@ function askHidden(question) {
 }
 
 const expandHome = (p) => (p === '~' || p.startsWith('~/') ? path.join(os.homedir(), p.slice(1)) : p);
+// Windows paths typed in WSL: "C:/x", "C:\x" or "C:x" (bash already ate the \) → "/mnt/c/x".
+const fromWindows = (p) => (process.platform === 'linux' && /^[a-z]:/i.test(p)
+  ? `/mnt/${p[0].toLowerCase()}/${p.slice(2).replace(/\\/g, '/').replace(/^\/+/, '')}` : p);
+const toPath = (p) => fromWindows(expandHome(p));
 
 async function askFolder(fallback) {
-  const answer = expandHome((await ask(say(`¿En qué carpeta lo guardo? [${fallback}]: `, `Save it in which folder? [${fallback}]: `))).trim());
+  const answer = toPath((await ask(say(`¿En qué carpeta lo guardo? [${fallback}]: `, `Save it in which folder? [${fallback}]: `))).trim());
   const folder = path.resolve(answer || fallback);
   if (!(await fs.stat(folder).catch(() => null))?.isDirectory()) throw new Error(say(`No existe la carpeta ${folder}`, `No such folder: ${folder}`));
   return folder;
@@ -65,7 +69,13 @@ async function writeNew(file, bytes) {
 }
 
 async function readFile(file) {
-  if (!(await fs.stat(file).catch(() => null))?.isFile()) throw new Error(say(`No encuentro el archivo ${file}`, `File not found: ${file}`));
+  if (!(await fs.stat(file).catch(() => null))?.isFile()) {
+    // Windows hides extensions, so "foto" is often "foto.jpg": suggest the matches.
+    const base = path.basename(file);
+    const similar = (await fs.readdir(path.dirname(file)).catch(() => [])).filter((entry) => entry.startsWith(`${base}.`));
+    const hint = similar.length ? say(`. ¿Quisiste decir ${similar.join(', ')}?`, `. Did you mean ${similar.join(', ')}?`) : '';
+    throw new Error(say(`No encuentro el archivo ${file}`, `File not found: ${file}`) + hint);
+  }
   return new Uint8Array(await fs.readFile(file));
 }
 
@@ -95,7 +105,7 @@ module.exports = async function run([command, file]) {
   try {
     if (!file) throw new Error(say(`Uso: opensesame ${command} ARCHIVO`, `Usage: opensesame ${command} FILE`));
     if (!process.stdin.isTTY) throw new Error(say('Este comando necesita una terminal', 'This command needs a terminal'));
-    await (command === 'lock' ? lock(file) : unlock(file));
+    await (command === 'lock' ? lock(toPath(file)) : unlock(toPath(file)));
     return 0;
   } catch (error) {
     console.error(`Error: ${error.message}`);
