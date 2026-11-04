@@ -54,7 +54,7 @@ public class MainActivity extends Activity {
         super.onCreate(state);
         // No screenshots, screen recording or recent-apps thumbnail of the vault (kept off in debug builds for testing).
         if (!BuildConfig.DEBUG) getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
-        int background = Color.rgb(14, 15, 18); // --bg in web/index.html
+        int background = Build.VERSION.SDK_INT >= 34 ? getColor(android.R.color.system_background_dark) : Color.rgb(14, 15, 18);
         webView = new WebView(this);
         FrameLayout content = new FrameLayout(this);
         content.setBackgroundColor(background);
@@ -93,7 +93,6 @@ public class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 applyInsets();
-                applyDynamicColors();
             }
         });
         // Edge to edge: the page paints behind transparent system bars and pads itself with --inset-* values.
@@ -148,19 +147,27 @@ public class MainActivity extends Activity {
         if (insetsScript != null) webView.evaluateJavascript(insetsScript, null);
     } 
     
-    private void applyDynamicColors() {
-        if (Build.VERSION.SDK_INT < 31) return;
-        String accent = String.format("#%06x",
-            getColor(android.R.color.system_accent1_200) & 0xFFFFFF);
+        private String applyDynamicColors() {
+            if (Build.VERSION.SDK_INT < 31) return "";
+            String accent = String.format("#%06x",
+                getColor(android.R.color.system_accent1_200) & 0xFFFFFF);
             String onAccent = String.format("#%06x",
-            getColor(android.R.color.system_accent1_800) & 0xFFFFFF);
-            String script =
-                "document.documentElement.style.setProperty('--accent','" + accent + "');"
-                + "document.documentElement.style.setProperty('--on-accent','" + onAccent + "');";
-        webView.evaluateJavascript(script, null);
-    }     
-    
+                getColor(android.R.color.system_accent1_800) & 0xFFFFFF);
+            String script = "--accent:" + accent + ";--on-accent:" + onAccent + ";";
+            
+            if (Build.VERSION.SDK_INT >= 34) {
+            String bg = String.format("#%06x",
+                getColor(android.R.color.system_background_dark) & 0xFFFFFF);
+            String surface = String.format("#%06x",
+                getColor(android.R.color.system_surface_container_dark) & 0xFFFFFF);
+            String surface2 = String.format("#%06x",
+                getColor(android.R.color.system_surface_container_high_dark) & 0xFFFFFF);
+                script += "--bg:" + bg + ";--surface:" + surface + ";--surface-2:" + surface2 + ";";
+        }
+        return script;
+    }
 
+    
     // The page words the result in the phone's language.
     private void notifySave(String state) {
         webView.evaluateJavascript("window.notifySave && notifySave(" + JSONObject.quote(state) + ")", null);
@@ -183,6 +190,10 @@ public class MainActivity extends Activity {
     }
 
     private class Bridge {
+        @JavascriptInterface
+        public String colors() {
+            return applyDynamicColors();
+        }
         @JavascriptInterface
         public void pick() {
             runOnUiThread(() -> {

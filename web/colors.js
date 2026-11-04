@@ -1,0 +1,1 @@
+if (window.OpenSesameAndroid) document.documentElement.style.cssText += OpenSesameAndroid.colors();
