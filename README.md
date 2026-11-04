@@ -21,7 +21,7 @@
 OpenSesame is a free and open-source app that works like a secure folder for any device. You add a file, choose a password, and the app encrypts it into its vault. Every encrypted file can be exported as a `.sesame` file and opened with OpenSesame on another phone or computer. Everything happens on the device: the app has no internet access and no accounts.
 
 > [!NOTE]
-> OpenSesame is a free, open-source learning project, built with the help of AI (Claude Code, with OpenAI Codex as a reviewer). **Its encryption has not been independently audited**, so please don't make it the only protection for important data.
+> OpenSesame is a free, open-source learning project. **Its encryption has not been independently audited**, so please don't make it the only protection for important data.
 
 > **Status:** learning project · not independently audited · v1.5.0 available.
 
@@ -32,6 +32,10 @@ Download the [OpenSesame v1.5.0 release](https://github.com/pollnull/OpenSesame/
 - **Android:** `OpenSesame-1.5.apk`
 - **Windows:** `OpenSesame-1.5.0-portable.exe`
 - **Linux:** `OpenSesame-1.5.0-amd64.deb` (Debian, Ubuntu, Mint…) or `OpenSesame-1.5.0-x86_64.AppImage` (other distributions)
+
+On Android you can also install and update it with [Obtainium](https://github.com/ImranR98/Obtainium), straight from these GitHub releases:
+
+<a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/pollnull/OpenSesame"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="54" /></a>
 
 The Windows build is portable: it needs no installation and keeps its vault in an `OpenSesame-datos` folder next to the `.exe`, so move them together. On Android, allow installing apps from unknown sources to install the APK.
 
@@ -52,7 +56,7 @@ On Linux, install the `.deb` with `sudo apt install ./OpenSesame-1.5.0-amd64.deb
 
 ## Security
 
-These are the measures the AI implemented and tested. They have not been checked by an independent security expert.
+These measures have not been checked by an independent security expert.
 
 - **Encryption:** AES-256-GCM with a key derived from the password using Argon2id (64 MiB of memory, 3 passes), with a random salt and IV for every file. Argon2id needs a lot of memory for every password guess, which makes cracking with graphics cards much slower. The original file name is encrypted too. Argon2id comes from the MIT-licensed [hash-wasm](https://github.com/Daninet/hash-wasm) library, bundled as [`web/argon2.js`](web/argon2.js).
 - **File format:** a `.sesame` file is the header (`SESAME`, version, Argon2id parameters, salt, IV) followed by the AES-GCM ciphertext, and the header is authenticated as additional data. Files from older versions (1 and 2, which used PBKDF2-SHA256) still open. See [`web/sesame.js`](web/sesame.js).
@@ -114,23 +118,21 @@ The app works offline and sends nothing anywhere. These are its limits:
 
 ## How this project was made
 
-OpenSesame is built with AI assistance, split in two:
+I decide what to build and test every version on my own devices. I write the smaller changes myself as I learn to code, like the Material You colors in 1.4. The bigger changes (encryption, architecture, new platforms, and bug fixes) are made with AI assistance (Claude Code, with Codex as a reviewer).
 
-- **Smaller changes are made by me, as I learn to code.** I write them myself, and the AI only supervises: it explains, guides, and reviews what I wrote. The Material You colors in 1.4 were made this way.
-
-- **Big changes are made with AI.** The encryption, the architecture, new platforms, and bug fixes are written by **Anthropic Claude (Claude Code)**, which also builds the apps and tests them in a browser, an emulator, and a real phone. **OpenAI Codex** acts as a second opinion on the interface design and the encryption and security changes. Their discussions are recorded in [`docs/ui-debate.md`](docs/ui-debate.md) and [`docs/flujo-de-trabajo.md`](docs/flujo-de-trabajo.md), in Spanish.
-
-I also decide what to build and test every version on my own devices. Third-party files keep their own authors: the Gradle Wrapper (`android/gradlew*`, `android/gradle/`), the IBM Plex fonts, and the Apache License text.
+Third-party files keep their own authors: the Gradle Wrapper (`android/gradlew*`, `android/gradle/`), the IBM Plex fonts, and the hash-wasm library (`web/argon2.js`).
 
 ## License
 
-OpenSesame is distributed under the Apache License 2.0. See [`LICENSE`](LICENSE). Because most of the code is AI-generated, it may not be eligible for copyright protection in some jurisdictions. The Apache-2.0 license applies to whatever rights do exist.
+OpenSesame is released under the [BSD Zero Clause License (0BSD)](LICENSE), which is close to public domain: anyone may use, copy, modify, fork, and redistribute it, for any purpose, with or without credit and with no conditions. It comes **as is, without any warranty**. Versions up to 1.5.0 were also published under the Apache License 2.0.
 
 Third-party resources retain their own licenses.
 
 ### Third-party resources under their own licenses
 
 The IBM Plex Sans and IBM Plex Mono fonts are licensed under the SIL Open Font License 1.1. The [`web/fonts/OFL.txt`](web/fonts/OFL.txt) file contains their license and attribution: Copyright 2019 IBM Corp.
+
+The Argon2id implementation in [`web/argon2.js`](web/argon2.js) comes from [hash-wasm](https://github.com/Daninet/hash-wasm), MIT License, Copyright (c) 2020 Dani Biró. The Gradle Wrapper files are licensed under the Apache License 2.0.
 
 ## Contributing
 
