@@ -52,7 +52,11 @@ ipcMain.handle('delete-original', async (event, token, hash) => {
   return fs.unlink(parked).then(() => true, () => false);
 });
 
-app.whenReady().then(() => {
+// `opensesame lock FILE` / `opensesame unlock FILE` work in the terminal without opening a window.
+const [command, file] = process.argv.slice(app.isPackaged ? 1 : 2).filter((arg) => !arg.startsWith('--'));
+if (command === 'lock' || command === 'unlock') {
+  require('./cli.cjs')([command, file]).then((code) => app.exit(code));
+} else app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
   const win = new BrowserWindow({
     width: 720,

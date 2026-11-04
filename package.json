@@ -1,7 +1,7 @@
 {
   "name": "opensesame",
   "productName": "OpenSesame",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Encrypts any file with its own password into a private vault (.sesame files)",
   "author": "PollNull",
   "license": "Apache-2.0",
@@ -14,7 +14,8 @@
   "scripts": {
     "start": "electron .",
     "test": "node --test",
-    "dist:win": "electron-builder --win portable"
+    "dist:win": "electron-builder --win portable",
+    "dist:linux": "electron-builder --linux"
   },
   "build": {
     "appId": "com.opensesame.app",
@@ -22,6 +23,7 @@
     "files": [
       "main.cjs",
       "preload.cjs",
+      "cli.cjs",
       "web/**"
     ],
     "electronFuses": {
@@ -41,6 +43,17 @@
     },
     "portable": {
       "artifactName": "OpenSesame-${version}-portable.exe"
+    },
+    "linux": {
+      "target": [
+        "deb",
+        "AppImage"
+      ],
+      "icon": "build/icon.png",
+      "category": "Utility",
+      "executableName": "opensesame",
+      "maintainer": "PollNull <pollnull@users.noreply.github.com>",
+      "artifactName": "OpenSesame-${version}-${arch}.${ext}"
     },
     "copyright": "Copyright 2026 PollNull"
   },
