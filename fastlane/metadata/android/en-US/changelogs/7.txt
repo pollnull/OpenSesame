@@ -1,0 +1,3 @@
+- License changed to 0BSD (close to public domain): use, modify and share freely
+- Store metadata and screenshots for F-Droid
+- No changes to the app itself

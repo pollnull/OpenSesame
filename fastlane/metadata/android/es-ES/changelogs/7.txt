@@ -1,0 +1,3 @@
+- La licencia ahora es 0BSD (casi dominio público): úsala, modifícala y compártela libremente
+- Metadatos y capturas para F-Droid
+- La app no cambia

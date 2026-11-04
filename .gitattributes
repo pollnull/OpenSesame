@@ -1,4 +1,7 @@
 * text=auto
+# App sources and assets always use LF, so APKs built on Windows match F-Droid's Linux build (reproducible builds).
+web/** text eol=lf
+android/** text eol=lf
 gradlew text eol=lf
 *.sh text eol=lf
 *.bat text eol=crlf
