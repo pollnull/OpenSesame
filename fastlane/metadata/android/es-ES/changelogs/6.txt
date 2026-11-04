@@ -1,0 +1,5 @@
+- Los archivos nuevos se cifran con Argon2id (formato v3); los viejos siguen abriendo
+- Oculta el nombre de un archivo en la lista con letras y números al azar
+- Mira fotos, videos, audios y textos dentro de la app, solo en memoria
+- Comparte archivos .sesame a otras apps
+- La contraseña mínima ahora es de 4 caracteres

@@ -1,0 +1,21 @@
+OpenSesame funciona como una carpeta segura para cualquier archivo. Eliges un archivo, le pones una contraseña y la app lo cifra dentro de su bóveda privada. Todo pasa en tu dispositivo: la app no tiene acceso a internet, ni cuentas, ni publicidad, ni rastreadores, y no pide ningún permiso de Android.
+
+<b>Funciones</b>
+<ul>
+<li>Cifra cualquier archivo (fotos, videos, documentos, APKs…) con su propia contraseña.</li>
+<li>Mira fotos, videos, audios y textos dentro de la app. Se descifran solo en memoria; no se guarda nada salvo que elijas "Guardar copia".</li>
+<li>Si quieres, oculta el nombre del archivo en la lista con letras y números al azar. El nombre real queda cifrado dentro del archivo.</li>
+<li>Exporta o comparte archivos <i>.sesame</i> y ábrelos con OpenSesame en otro teléfono, o en Windows y Linux.</li>
+<li>Si quieres, borra el original después de cifrarlo, solo cuando la copia cifrada ya se comprobó.</li>
+<li>Busca, ordena y cambia el nombre de tus archivos.</li>
+<li>Bloquea capturas de pantalla, grabación de pantalla y la vista previa de apps recientes.</li>
+<li>Colores Material You que siguen tu fondo de pantalla.</li>
+<li>Interfaz en español e inglés.</li>
+</ul>
+
+<b>Cifrado</b>
+AES-256-GCM, con la clave derivada de tu contraseña mediante Argon2id (64 MiB de memoria, 3 pasadas) y una sal aleatoria para cada archivo.
+
+No hay forma de recuperar una contraseña olvidada. Para una protección real, usa una frase de cuatro o más palabras al azar.
+
+OpenSesame es un proyecto gratuito, de código abierto y de aprendizaje. Su cifrado no fue auditado de forma independiente, así que no lo uses como única protección para datos importantes.

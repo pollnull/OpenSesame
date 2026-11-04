@@ -1,0 +1,21 @@
+OpenSesame works like a secure folder for any file. Pick a file, choose a password, and the app encrypts it into its private vault. Everything happens on your device: the app has no internet access, no accounts, no ads and no trackers, and it asks for no Android permissions.
+
+<b>Features</b>
+<ul>
+<li>Encrypt any file (photos, videos, documents, APKs…) with its own password.</li>
+<li>View photos, videos, audio and text files right inside the app. They are decrypted in memory only; nothing is saved unless you choose "Save a copy".</li>
+<li>Optionally hide a file's name in the list behind random letters and numbers. The real name stays encrypted inside the file.</li>
+<li>Export or share files as <i>.sesame</i> and open them with OpenSesame on another phone, or on Windows and Linux.</li>
+<li>Optionally delete the original after encrypting it, only once the encrypted copy has been checked.</li>
+<li>Search, sort and rename your files.</li>
+<li>Blocks screenshots, screen recording and the recent-apps preview.</li>
+<li>Material You colors that follow your wallpaper.</li>
+<li>Interface in English and Spanish.</li>
+</ul>
+
+<b>Encryption</b>
+AES-256-GCM, with the key derived from your password using Argon2id (64 MiB of memory, 3 passes) and a random salt for every file.
+
+There is no way to recover a forgotten password. For real protection, use a passphrase of four or more random words.
+
+OpenSesame is a free, open-source learning project. Its encryption has not been independently audited, so please don't make it the only protection for important data.

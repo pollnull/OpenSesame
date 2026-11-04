@@ -1,0 +1,5 @@
+- New files are encrypted with Argon2id (format v3); older files still open
+- Hide a file's name in the list behind random letters and numbers
+- View photos, videos, audio and text inside the app, in memory only
+- Share .sesame files to other apps
+- Minimum password length is now 4 characters

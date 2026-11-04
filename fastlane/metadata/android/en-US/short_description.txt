@@ -1,0 +1,1 @@
+Lock any file with its own password, offline, in a private vault
