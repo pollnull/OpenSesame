@@ -1,17 +1,21 @@
-// .sesame file: "SESAME" | version (1 byte) | PBKDF2 iterations (uint32) | salt (16) | IV (12) | AES-256-GCM ciphertext.
+// .sesame file, version 3 (written now):
+//   "SESAME" | 3 | Argon2id memory in KiB (uint32) | passes (uint32) | lanes (1 byte) | salt (16) | IV (12) | AES-256-GCM ciphertext
+// Versions 1 and 2 (still read): "SESAME" | version | PBKDF2-SHA256 iterations (uint32) | salt (16) | IV (12) | ciphertext.
 // The plaintext is: metadata length (uint32) | metadata JSON {name, type} | original file bytes.
-// Version 2 authenticates the 39-byte header as AES-GCM additional data; version 1 files are still read.
+// From version 2 on, the whole header is authenticated as AES-GCM additional data.
 (() => {
   const MAGIC = [0x53, 0x45, 0x53, 0x41, 0x4d, 0x45];
-  const VERSION = 2;
-  const ITERATIONS = 600000;
-  const HEADER = 39;
+  // Argon2id: each guess costs 64 MiB of memory, which is what makes GPU cracking slow (RFC 9106, OWASP).
+  const ARGON = { memory: 65536, passes: 3, lanes: 1 };
+  const HEADER = { 1: 39, 2: 39, 3: 44 };
   const encoder = new TextEncoder();
+  // In the app argon2.js is loaded before this file; in Node (CLI, tests) it is required.
+  const argon2id = globalThis.hashwasm?.argon2id ?? require('./argon2.js').argon2id;
   // `code` lets the app show the message in the device's language.
   const failure = (code, message) => Object.assign(new Error(message), { code });
   const invalid = () => failure('invalid', 'No es un archivo .sesame válido');
 
-  async function deriveKey(password, salt, iterations) {
+  async function pbkdf2Key(password, salt, iterations) {
     const base = await crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, ['deriveKey']);
     return crypto.subtle.deriveKey(
       { name: 'PBKDF2', hash: 'SHA-256', salt, iterations },
@@ -21,8 +25,24 @@
       ['encrypt', 'decrypt']);
   }
 
+  async function argonKey(password, salt, { memory, passes, lanes }) {
+    const secret = encoder.encode(password);
+    try {
+      const raw = await argon2id({
+        password: secret, salt, parallelism: lanes, iterations: passes, memorySize: memory, hashLength: 32, outputType: 'binary',
+      });
+      try {
+        return await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt', 'decrypt']);
+      } finally {
+        raw.fill(0);
+      }
+    } finally {
+      secret.fill(0);
+    }
+  }
+
   function isSesame(bytes) {
-    return bytes.length >= HEADER + 16 && MAGIC.every((b, i) => bytes[i] === b);
+    return bytes.length >= 39 + 16 && MAGIC.every((b, i) => bytes[i] === b);
   }
 
   async function encrypt(bytes, meta, password) {
@@ -31,18 +51,22 @@
     new DataView(plain.buffer).setUint32(0, metaBytes.length);
     plain.set(metaBytes, 4);
     plain.set(bytes, 4 + metaBytes.length);
-    const header = new Uint8Array(HEADER);
+    const size = HEADER[3];
+    const header = new Uint8Array(size);
+    const view = new DataView(header.buffer);
     header.set(MAGIC);
-    header[6] = VERSION;
-    new DataView(header.buffer).setUint32(7, ITERATIONS);
-    const salt = crypto.getRandomValues(header.subarray(11, 27));
-    const iv = crypto.getRandomValues(header.subarray(27, HEADER));
+    header[6] = 3;
+    view.setUint32(7, ARGON.memory);
+    view.setUint32(11, ARGON.passes);
+    header[15] = ARGON.lanes;
+    const salt = crypto.getRandomValues(header.subarray(16, 32));
+    const iv = crypto.getRandomValues(header.subarray(32, size));
     try {
-      const key = await deriveKey(password, salt, ITERATIONS);
+      const key = await argonKey(password, salt, ARGON);
       const cipher = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: header }, key, plain));
-      const out = new Uint8Array(HEADER + cipher.length);
+      const out = new Uint8Array(size + cipher.length);
       out.set(header);
-      out.set(cipher, HEADER);
+      out.set(cipher, size);
       return out;
     } finally {
       plain.fill(0);
@@ -51,16 +75,28 @@
 
   async function decrypt(sesame, password) {
     const version = sesame[6];
-    if (!isSesame(sesame) || (version !== 1 && version !== 2)) throw invalid();
-    const iterations = new DataView(sesame.buffer, sesame.byteOffset).getUint32(7);
-    // A crafted file could ask for billions of iterations and freeze the app.
-    if (iterations < 100000 || iterations > 10000000) throw invalid();
-    const key = await deriveKey(password, sesame.subarray(11, 27), iterations);
-    const params = { name: 'AES-GCM', iv: sesame.subarray(27, HEADER) };
-    if (version === 2) params.additionalData = sesame.subarray(0, HEADER);
+    const size = HEADER[version];
+    if (!isSesame(sesame) || !size || sesame.length < size + 16) throw invalid();
+    const view = new DataView(sesame.buffer, sesame.byteOffset);
+    let key;
+    let iv;
+    if (version === 3) {
+      const params = { memory: view.getUint32(7), passes: view.getUint32(11), lanes: sesame[15] };
+      // A crafted file could ask for gigabytes of memory or endless passes and freeze the app.
+      if (params.memory < 8192 || params.memory > 262144 || params.passes < 1 || params.passes > 10 || params.lanes < 1 || params.lanes > 4) throw invalid();
+      key = await argonKey(password, sesame.subarray(16, 32), params);
+      iv = sesame.subarray(32, size);
+    } else {
+      const iterations = view.getUint32(7);
+      if (iterations < 100000 || iterations > 10000000) throw invalid();
+      key = await pbkdf2Key(password, sesame.subarray(11, 27), iterations);
+      iv = sesame.subarray(27, size);
+    }
+    const params = { name: 'AES-GCM', iv };
+    if (version >= 2) params.additionalData = sesame.subarray(0, size);
     let plain;
     try {
-      plain = new Uint8Array(await crypto.subtle.decrypt(params, key, sesame.subarray(HEADER)));
+      plain = new Uint8Array(await crypto.subtle.decrypt(params, key, sesame.subarray(size)));
     } catch {
       throw failure('password', 'Contraseña incorrecta o archivo dañado');
     }

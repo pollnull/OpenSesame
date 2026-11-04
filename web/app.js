@@ -101,7 +101,7 @@ function buildRow(item) {
   rowItem.set(row, item);
   const more = row.querySelector('.more');
   more.setAttribute('aria-label', t('options'));
-  onPress(row.querySelector('.item'), () => actions.decrypt(item), (point) => showActions(item, point));
+  onPress(row.querySelector('.item'), () => actions.open(item), (point) => showActions(item, point));
   more.addEventListener('click', () => showActions(item, platform === 'desktop' ? anchorOf(more) : null));
   return row;
 }
@@ -386,17 +386,22 @@ async function addFile(file, origin) {
     }
     const fields = [{ label: t('password'), type: 'password' }, { label: t('repeatPassword'), type: 'password' }];
     if (origin) fields.push({ label: t('deleteOriginal'), type: 'checkbox', checked: true });
+    fields.push({ label: t('hideName'), type: 'checkbox' });
     const result = await ask({
       title: t('encryptTitle', { name: file.name }),
       text: t('encryptText'),
       fields,
       ok: t('encrypt'),
       validate: ([first, second]) => {
-        if (first.length < 8) return t('tooShort');
+        if (first.length < 4) return t('tooShort');
         return first === second ? '' : t('mismatch');
       },
-      work: async ([password, , removeOriginal]) => {
-        const id = await vault.add(file.name, await Sesame.encrypt(bytes, { name: file.name, type: file.type }, password));
+      work: async (values) => {
+        const [password] = values;
+        const removeOriginal = origin ? values[2] : false;
+        // The real name always travels encrypted inside the file; the list shows the label.
+        const label = values[values.length - 1] ? randomName() : file.name;
+        const id = await vault.add(label, await Sesame.encrypt(bytes, { name: file.name, type: file.type }, password));
         // Read the stored copy back and decrypt it before the original is ever touched.
         try {
           const check = await Sesame.decrypt(await vault.data(id), password);
@@ -408,19 +413,35 @@ async function addFile(file, origin) {
           await vault.remove(id);
           throw error.code ? new Error(t('verifyFailed')) : error;
         }
-        return { id, removed: removeOriginal ? await deleteOriginal(origin, await sha256(bytes)) : null };
+        return { id, label, removed: removeOriginal ? await deleteOriginal(origin, await sha256(bytes)) : null };
       },
     });
     if (!result) return;
     justAdded.add(result.id);
     const message = result.removed === true ? 'encryptedRemoved' : result.removed === false ? 'encryptedKept' : 'encrypted';
-    toast(t(message, { name: file.name }));
+    toast(t(message, { name: result.label }));
   } finally {
     bytes.fill(0);
   }
 }
 
 const actions = {
+  async open(item) {
+    const result = await ask({
+      title: item.label,
+      text: t('openText'),
+      fields: [{ label: t('password'), type: 'password' }],
+      ok: t('open'),
+      lock: true,
+      work: async ([password]) => Sesame.decrypt(await vault.data(item.id), password),
+    });
+    if (result) showViewer(result);
+  },
+
+  async share(item) {
+    window.OpenSesameAndroid.share(`${item.label}.sesame`, toBase64(await vault.data(item.id)));
+  },
+
   async decrypt(item) {
     const result = await ask({
       title: item.label,
@@ -502,6 +523,61 @@ $('sheet').querySelector('.actions').addEventListener('click', (event) => {
   closeDialog($('sheet'));
   actions[name](sheetItem);
 });
+
+// Viewer: shows a decrypted file from memory only. Nothing is written to disk unless "Save a copy" is pressed.
+const KINDS = {
+  image: /^(jpe?g|png|gif|webp|bmp|avif|svg)$/,
+  video: /^(mp4|m4v|webm|mov|3gp|mkv)$/,
+  audio: /^(mp3|m4a|aac|ogg|oga|opus|wav|flac)$/,
+  text: /^(txt|md|csv|tsv|json|log|xml|ya?ml|ini|conf|html?|css|js|py|java|kt|c|cpp|h|sh|bat|ps1)$/,
+};
+const MIME = { svg: 'image/svg+xml', mov: 'video/mp4', mkv: 'video/webm' };
+function kindOf({ name, type = '' }) {
+  const ext = (/\.([a-z0-9]+)$/i.exec(name)?.[1] || '').toLowerCase();
+  for (const kind of ['image', 'video', 'audio']) if (type.startsWith(`${kind}/`) || KINDS[kind].test(ext)) return { kind, ext };
+  if (type.startsWith('text/') || type === 'application/json' || KINDS.text.test(ext)) return { kind: 'text', ext };
+  return { kind: '', ext };
+}
+const MAX_TEXT = 2 * 1048576;
+let viewing = null;
+function showViewer({ meta, bytes }) {
+  const { kind, ext } = kindOf(meta);
+  const body = $('viewerBody');
+  $('viewerTitle').textContent = meta.name;
+  let element;
+  let url = '';
+  if (kind === 'text') {
+    element = document.createElement('pre');
+    element.textContent = new TextDecoder().decode(bytes.subarray(0, MAX_TEXT)) + (bytes.length > MAX_TEXT ? `\n${t('truncated')}` : '');
+  } else if (kind) {
+    url = URL.createObjectURL(new Blob([bytes], { type: meta.type || MIME[ext] || `${kind}/${ext}` }));
+    element = document.createElement(kind === 'image' ? 'img' : kind);
+    element.src = url;
+    if (kind === 'image') element.alt = meta.name;
+    else element.controls = true;
+    if (kind === 'video') element.playsInline = true;
+  } else {
+    element = document.createElement('p');
+    element.className = 'note';
+    element.textContent = t('noPreview');
+  }
+  body.replaceChildren(element);
+  viewing = { meta, bytes, url };
+  openDialog($('viewer'));
+}
+$('viewer').addEventListener('close', () => {
+  // Drop every trace of the decrypted file when the viewer closes.
+  if (!viewing) return;
+  $('viewerBody').replaceChildren();
+  if (viewing.url) URL.revokeObjectURL(viewing.url);
+  viewing.bytes.fill(0);
+  viewing = null;
+});
+$('viewerClose').addEventListener('click', () => closeDialog($('viewer')));
+$('viewerSave').addEventListener('click', () => viewing && saveFile(viewing.meta.name, viewing.bytes, viewing.meta.type));
+
+// Random list name for "hide the name": 12 characters from an unambiguous alphabet.
+const randomName = () => [...crypto.getRandomValues(new Uint8Array(12))].map((b) => 'abcdefghjkmnpqrstuvwxyz23456789'[b % 31]).join('');
 
 // Each entry loads its File lazily and says how to delete the original afterwards.
 const addFiles = guard(async (entries) => {

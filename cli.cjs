@@ -82,7 +82,7 @@ async function readFile(file) {
 async function lock(file) {
   const bytes = await readFile(file);
   const password = await askHidden(say('Contraseña: ', 'Password: '));
-  if (password.length < 8) throw new Error(say('La contraseña debe tener al menos 8 caracteres', 'The password must be at least 8 characters'));
+  if (password.length < 4) throw new Error(say('La contraseña debe tener al menos 4 caracteres', 'The password must be at least 4 characters'));
   if (password !== await askHidden(say('Repite la contraseña: ', 'Repeat the password: '))) throw new Error(say('Las contraseñas no coinciden', 'The passwords do not match'));
   const folder = await askFolder(path.dirname(path.resolve(file)));
   const name = path.basename(file);

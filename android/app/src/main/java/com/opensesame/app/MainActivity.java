@@ -26,6 +26,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -225,6 +227,36 @@ public class MainActivity extends Activity {
             } catch (Exception error) {
                 return false;
             }
+        }
+
+        // Sends a .sesame file to another app (messages, mail, Drive…). It is still encrypted, so the
+        // temporary copy in the cache reveals nothing; the previous one is removed first.
+        @JavascriptInterface
+        public void share(String name, String base64) {
+            byte[] bytes = Base64.decode(base64, Base64.DEFAULT);
+            File folder = ShareProvider.folder(getCacheDir());
+            File[] old = folder.listFiles();
+            if (old != null) for (File file : old) file.delete();
+            String safe = name.replaceAll("[\\\\/:*?\"<>|\\x00-\\x1f]", "_");
+            File file = new File(folder, safe.isEmpty() ? "archivo.sesame" : safe);
+            try {
+                folder.mkdirs();
+                try (FileOutputStream out = new FileOutputStream(file)) {
+                    out.write(bytes);
+                }
+            } catch (IOException error) {
+                runOnUiThread(() -> notifySave("failed"));
+                return;
+            }
+            Uri uri = new Uri.Builder().scheme("content").authority(getPackageName() + ".share").appendPath(file.getName()).build();
+            runOnUiThread(() -> {
+                Intent send = new Intent(Intent.ACTION_SEND)
+                    .setType("application/octet-stream")
+                    .putExtra(Intent.EXTRA_STREAM, uri)
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                send.setClipData(ClipData.newRawUri(file.getName(), uri));
+                startActivity(Intent.createChooser(send, null));
+            });
         }
 
         @JavascriptInterface

@@ -23,25 +23,27 @@ OpenSesame is a free and open-source app that works like a secure folder for any
 > [!NOTE]
 > OpenSesame is a free, open-source learning project, built with the help of AI (Claude Code, with OpenAI Codex as a reviewer). **Its encryption has not been independently audited**, so please don't make it the only protection for important data.
 
-> **Status:** learning project · not independently audited · v1.4.0 available.
+> **Status:** learning project · not independently audited · v1.5.0 available.
 
 ## Download
 
-Download the [OpenSesame v1.4.0 release](https://github.com/pollnull/OpenSesame/releases/tag/v1.4.0), or browse [all releases](https://github.com/pollnull/OpenSesame/releases):
+Download the [OpenSesame v1.5.0 release](https://github.com/pollnull/OpenSesame/releases/tag/v1.5.0), or browse [all releases](https://github.com/pollnull/OpenSesame/releases):
 
-- **Android:** `OpenSesame-1.4.apk`
-- **Windows:** `OpenSesame-1.4.0-portable.exe`
-- **Linux:** `OpenSesame-1.4.0-amd64.deb` (Debian, Ubuntu, Mint…) or `OpenSesame-1.4.0-x86_64.AppImage` (other distributions)
+- **Android:** `OpenSesame-1.5.apk`
+- **Windows:** `OpenSesame-1.5.0-portable.exe`
+- **Linux:** `OpenSesame-1.5.0-amd64.deb` (Debian, Ubuntu, Mint…) or `OpenSesame-1.5.0-x86_64.AppImage` (other distributions)
 
 The Windows build is portable: it needs no installation and keeps its vault in an `OpenSesame-datos` folder next to the `.exe`, so move them together. On Android, allow installing apps from unknown sources to install the APK.
 
-On Linux, install the `.deb` with `sudo apt install ./OpenSesame-1.4.0-amd64.deb`, then open the app from the applications menu or by typing `opensesame` in a terminal. The AppImage runs without installing: make it executable (`chmod +x`) and open it.
+On Linux, install the `.deb` with `sudo apt install ./OpenSesame-1.5.0-amd64.deb`, then open the app from the applications menu or by typing `opensesame` in a terminal. The AppImage runs without installing: make it executable (`chmod +x`) and open it.
 
 ## Features
 
 - Encrypt any file with its own password and keep it in an in-app vault.
 - Optionally delete the original after encrypting it. The original is deleted only after the encrypted copy is written to disk, read back, decrypted, and found identical, and only if the original has not changed since it was picked.
-- Decrypt a file and save a copy wherever you choose, or export it as a `.sesame` file to open on another device.
+- Optionally hide a file's name when encrypting it: the list shows random letters and numbers instead, and the real name stays encrypted inside the file.
+- View photos, videos, audio, and text files inside the app. They are decrypted in memory only and nothing is written to disk unless you choose "Save a copy".
+- Decrypt a file and save a copy wherever you choose, or export it as a `.sesame` file to open on another device. On Android you can also share the `.sesame` file straight to another app (messages, email, cloud storage…).
 - Rename, delete, search, and sort files (recent, name, size). Long-press on Android, right-click or ⋮ on Windows.
 - Windows and Linux extras: drag and drop files onto the window, and keyboard shortcuts (Ctrl+O, Ctrl+F, Enter, F2, Del).
 - Linux terminal mode: `opensesame lock FILE` encrypts a file and `opensesame unlock FILE.sesame` decrypts it, asking for the password (hidden) and the destination folder in the terminal, without opening a window. It never overwrites an existing file, and the original is kept. The `.sesame` files it makes open in the app, and the other way around.
@@ -52,8 +54,8 @@ On Linux, install the `.deb` with `sudo apt install ./OpenSesame-1.4.0-amd64.deb
 
 These are the measures the AI implemented and tested. They have not been checked by an independent security expert.
 
-- **Encryption:** AES-256-GCM with a key derived from the password using PBKDF2-SHA256 (600,000 iterations), with a random salt and IV for every file. The original file name is encrypted too.
-- **File format:** a `.sesame` file is the header (`SESAME`, version, iterations, salt, IV) followed by the AES-GCM ciphertext. Since version 2, the header is authenticated as additional data. Version 1 files still open. See [`web/sesame.js`](web/sesame.js).
+- **Encryption:** AES-256-GCM with a key derived from the password using Argon2id (64 MiB of memory, 3 passes), with a random salt and IV for every file. Argon2id needs a lot of memory for every password guess, which makes cracking with graphics cards much slower. The original file name is encrypted too. Argon2id comes from the MIT-licensed [hash-wasm](https://github.com/Daninet/hash-wasm) library, bundled as [`web/argon2.js`](web/argon2.js).
+- **File format:** a `.sesame` file is the header (`SESAME`, version, Argon2id parameters, salt, IV) followed by the AES-GCM ciphertext, and the header is authenticated as additional data. Files from older versions (1 and 2, which used PBKDF2-SHA256) still open. See [`web/sesame.js`](web/sesame.js).
 - **Android:**
   - The release APK is not debuggable.
   - It blocks screenshots, screen recording, and the recent-apps preview.
@@ -102,7 +104,7 @@ Do not commit keystores, `keystore.properties`, `local.properties`, or machine-s
 The app works offline and sends nothing anywhere. These are its limits:
 
 - **No password recovery.** If you forget a file's password, no one can open that file.
-- **Use a strong password.** A stolen `.sesame` file can be attacked offline, so use a phrase of four or more random words.
+- **Use a strong password.** The app accepts passwords of 4 characters or more, but a stolen `.sesame` file can be attacked offline with no limit on attempts. A short PIN can be guessed quickly even with Argon2id; for real protection use four or more random words.
 - **Visible names.** File names in the vault list are visible without a password. The original name inside the file is encrypted.
 - **Decrypted copies are unprotected.** Once you save a decrypted copy, it is an ordinary file; delete it when you no longer need it.
 - **Deleting is not secure erasure.** Copies of an original may remain in the trash, cloud sync, or backups, and flash storage cannot guarantee an unrecoverable delete.
