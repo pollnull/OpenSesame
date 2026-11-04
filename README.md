@@ -112,9 +112,12 @@ The app works offline and sends nothing anywhere. These are its limits:
 
 ## How this project was made
 
-OpenSesame is built with AI assistance. **Anthropic Claude (Claude Code)** writes most of the code, builds the apps, and tests them in a browser, an emulator, and a real phone. **OpenAI Codex** acts as a second opinion on the interface design and the encryption and security changes. Their discussions are recorded in [`docs/ui-debate.md`](docs/ui-debate.md) and [`docs/flujo-de-trabajo.md`](docs/flujo-de-trabajo.md), in Spanish.
+OpenSesame is built with AI assistance, split in two:
 
-I decide what to build, test every version on my own devices, and make the smaller changes myself as I learn to code, like the Material You colors in 1.4. Third-party files keep their own authors: the Gradle Wrapper (`android/gradlew*`, `android/gradle/`), the IBM Plex fonts, and the Apache License text.
+- **Big changes are made with AI.** The encryption, the architecture, new platforms, and bug fixes are written by **Anthropic Claude (Claude Code)**, which also builds the apps and tests them in a browser, an emulator, and a real phone. **OpenAI Codex** acts as a second opinion on the interface design and the encryption and security changes. Their discussions are recorded in [`docs/ui-debate.md`](docs/ui-debate.md) and [`docs/flujo-de-trabajo.md`](docs/flujo-de-trabajo.md), in Spanish.
+- **Smaller changes are made by me, as I learn to code.** I write them myself, and the AI only supervises: it explains, guides, and reviews what I wrote. The Material You colors in 1.4 were made this way.
+
+I also decide what to build and test every version on my own devices. Third-party files keep their own authors: the Gradle Wrapper (`android/gradlew*`, `android/gradle/`), the IBM Plex fonts, and the Apache License text.
 
 ## License
 
