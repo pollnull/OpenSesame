@@ -20,12 +20,18 @@ if (-not (Test-Path $lineage)) {
     if ($LASTEXITCODE) { throw 'No se pudo crear la rotación de firma' }
 }
 
-& (Join-Path $android 'gradlew.bat') -p $android :app:assembleRelease --console=plain -q
+# El APK sin firmar se compila en Ubuntu (WSL) con el Java 21 de Debian, desde el último commit, igual que F-Droid.
+# Así su compilación sale idéntica y puede publicar este APK con nuestra firma (builds reproducibles).
+# Requiere en Ubuntu: openjdk-21-jdk-headless y el SDK en ~/fdroid-tools/sdk (ver android/compilar-apk-wsl.sh).
+wsl -d Ubuntu --cd $android -- bash compilar-apk-wsl.sh
 if ($LASTEXITCODE) { throw 'Falló la compilación' }
 
 $unsigned = Join-Path $android 'app\build\outputs\apk\release\app-release-unsigned.apk'
 $out = Join-Path $android 'app\build\outputs\apk\release\OpenSesame-release.apk'
-& $apksigner sign --out $out --rotation-min-sdk-version 28 `
+# Solo firma v3 (con el historial de rotación) y sin tocar la alineación: F-Droid exige un único certificado
+# y copia nuestra firma sobre su propia compilación.
+& $apksigner sign --out $out --rotation-min-sdk-version 28 --alignment-preserved `
+    --v1-signing-enabled false --v2-signing-enabled false `
     --ks $debug --ks-pass pass:android --ks-key-alias androiddebugkey `
     --next-signer --ks $release --ks-pass "pass:$($props.storePassword)" --ks-key-alias $props.keyAlias `
     --lineage $lineage $unsigned

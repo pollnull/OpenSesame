@@ -1,0 +1,3 @@
+- Requiere Android 9 o superior
+- El APK ahora tiene una sola firma, para que F-Droid pueda verificarla
+- La app funciona igual; al actualizar se conserva la bóveda

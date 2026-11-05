@@ -23,15 +23,15 @@ OpenSesame is a free and open-source app that works like a secure folder for any
 > [!NOTE]
 > OpenSesame is a free, open-source learning project. **Its encryption has not been independently audited**, so please don't make it the only protection for important data.
 
-> **Status:** learning project · not independently audited · v1.5.1 available.
+> **Status:** learning project · not independently audited · v1.5.2 available.
 
 ## Download
 
-Download the [OpenSesame v1.5.1 release](https://github.com/pollnull/OpenSesame/releases/tag/v1.5.1), or browse [all releases](https://github.com/pollnull/OpenSesame/releases):
+Download the [OpenSesame v1.5.2 release](https://github.com/pollnull/OpenSesame/releases/tag/v1.5.2), or browse [all releases](https://github.com/pollnull/OpenSesame/releases):
 
-- **Android:** `OpenSesame-1.5.1.apk`
-- **Windows:** `OpenSesame-1.5.1-portable.exe`
-- **Linux:** `OpenSesame-1.5.1-amd64.deb` (Debian, Ubuntu, Mint…) or `OpenSesame-1.5.1-x86_64.AppImage` (other distributions)
+- **Android:** `OpenSesame-1.5.2.apk` (Android 9 or newer)
+- **Windows:** `OpenSesame-1.5.2-portable.exe`
+- **Linux:** `OpenSesame-1.5.2-amd64.deb` (Debian, Ubuntu, Mint…) or `OpenSesame-1.5.2-x86_64.AppImage` (other distributions)
 
 On Android you can also install and update it with [Obtainium](https://github.com/ImranR98/Obtainium), straight from these GitHub releases:
 
@@ -39,7 +39,7 @@ On Android you can also install and update it with [Obtainium](https://github.co
 
 The Windows build is portable: it needs no installation and keeps its vault in an `OpenSesame-datos` folder next to the `.exe`, so move them together. On Android, allow installing apps from unknown sources to install the APK.
 
-On Linux, install the `.deb` with `sudo apt install ./OpenSesame-1.5.1-amd64.deb`, then open the app from the applications menu or by typing `opensesame` in a terminal. The AppImage runs without installing: make it executable (`chmod +x`) and open it.
+On Linux, install the `.deb` with `sudo apt install ./OpenSesame-1.5.2-amd64.deb`, then open the app from the applications menu or by typing `opensesame` in a terminal. The AppImage runs without installing: make it executable (`chmod +x`) and open it.
 
 ## Features
 
